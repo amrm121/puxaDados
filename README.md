@@ -1,7 +1,8 @@
 # puxaDados
 node js
 
-*Editar VAR opt. 1 = Puxar até o CEP. 2 = Puxada completa.
+**Editar VAR opt. 1 = Puxar até o CEP. 2 = Puxada completa.**
+
 Acessar https://painel.ac/Complete.php executar buscar. E coletar os cookies de BuscarDocumento.php
 Substituir na variável cookie.
 
