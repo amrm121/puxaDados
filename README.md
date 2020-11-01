@@ -1,5 +1,8 @@
 # puxaDados
-node js
+Rodando -> abre cmd na pasta. 
+executa `node index.js`
+
+Só aguardar.
 
 **Editar VAR opt. 1 = Puxar até o CEP. 2 = Puxada completa.**
 
