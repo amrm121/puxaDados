@@ -3,6 +3,7 @@ const prompt = require('prompt-sync')();
 const LineByLineReader = require('line-by-line');
 const validarCpf = require('validar-cpf');
 const fs = require('fs');
+const opt = 1; //EDITAR AQUI 1 = PUXA ATÉ CEP /2 PUXA TUDO
 function pad(str, length) {
   const resto = length - String(str).length;
   return '0'.repeat(resto > 0 ? resto : '0') + str;
@@ -16,9 +17,9 @@ function Curl(setCurl) {
 	});
 
 }
-async function puxaDados( cpf, cookie ){
-	
-	cookie = 'sucuri_cloudproxy_uuid_205e2b585=3a0e7d62edbf8a4db683c0b3587047a4; PHPSESSID=i1kj2uja1hfliapo1g35lnnv9f; __tawkuuid=e::painel.ac::JDO5WAN4zSHpaxfIB3t+EvuGxB24D78ubSHJ2nzzlC18RoeH4VGLM+C9OVLObR/S::2; TawkConnectionTime=0sucuri_cloudproxy_uuid_205e2b585=3a0e7d62edbf8a4db683c0b3587047a4; PHPSESSID=i1kj2uja1hfliapo1g35lnnv9f; __tawkuuid=e::painel.ac::JDO5WAN4zSHpaxfIB3t+EvuGxB24D78ubSHJ2nzzlC18RoeH4VGLM+C9OVLObR/S::2; TawkConnectionTime=0';
+async function puxaDados( cpf, cookie, opt ){
+	 
+	cookie = 'sucuri_cloudproxy_uuid_e4e63face=7b700849da71e5e9bc0c0cd1faaaa14f; PHPSESSID=bcfob8hmjg682cj51g5bdgm7aj; __tawkuuid=e::painel.ac::Dc11BEwUxbAhcgTHkbzA8grDHX05w/CxKQAOrD7gL9tcug8mL2+5T7xJctNiINGC::2; TawkConnectionTime=0'
 	var respPuxaDados;
 	
 	while( true ){
@@ -45,9 +46,16 @@ async function puxaDados( cpf, cookie ){
 			});
 			//console.log(reqToken);
 				await(8000);
-			 	resultado = reqToken.substring( reqToken.lastIndexOf('resultado_clipboard'));
-			 	console.log('\nAPDU.emv$LaFirma -- Dados Coleta OK:');
-			 	console.log('APDU.emv$LaFirma -- Dados CPF:' + cpf);
+				
+				//
+				//resultado = reqToken.substring( reqToken.lastIndexOf('- DADOS CADASTRAIS'), reqToken.lastIndexOf('- INFORMAÇÕES CARTÓRIO')); <-
+				if(opt == 1){
+					resultado = reqToken.substring( reqToken.lastIndexOf('- DADOS CADASTRAIS'), reqToken.lastIndexOf('- INFORMAÇÕES CARTÓRIO'));
+				}
+				else{
+					resultado = reqToken.substring( reqToken.lastIndexOf('- DADOS CADASTRAIS'), reqToken.lastIndexOf('>'));
+				}
+			 	
 			 	//cpf = resultado.substring( resultado.indexOf('(CPF):'+2), resultado.indexOf('(CPF):')+13);
 			 	//nome = resultado.substring((resultado.indexOf('Nome')+1),(resultado.indexOf('M')-1);	
 			 	
@@ -76,23 +84,45 @@ async function puxaDados( cpf, cookie ){
 
 
 var run = async () => {
-
-	const  cookie = prompt('Insira o cookie do proleão: ');
-
+	var optx = 0;
+	const  cookie = prompt('Aperte enter depois de ter editado no arquivo o cookie:) APDU.emv');
+	const escolha = prompt('EDITE NO ARQUIVO SE VOCÊ QUER PUXADA COMPLETA OU APENAS ATÉ CEP.');
+	
+	//console.log('Digite 1 se quiser puxar até o CPF e 2 se quiser puxada completa.');
+	
+	/*lrn.on('line', async function (line) {
+		console.log('TESTE 1 OK');
+		lrn.pause();
+		if(line == 1){
+			optx = 1;
+			console.log('Puxando dados até CPF. - APDU.emv');
+		}else{
+			optx = 2;
+			console.log('Puxando dados COMPLETOS. - APDU.emv');			
+		}
+		lrn.close();
+	});*/
+	
 	lr = new LineByLineReader('./lista.txt');
 
 	lr.on('line', async function (line) {
-
 		lr.pause();
 
 		if( validarCpf(line) ){
-
-			var retorno = await puxaDados(line, cookie);
+			if(optx == 1){
+				console.log('Puxando dados até CEP. CPF:' + line + ' - APDU.emv \n');
+			}
+			else{
+				console.log('Puxando dados COMPLETOS. CPF:' + line + ' - APDU.emv \n');
+			}
+			
+			
+			var retorno = await puxaDados(line, cookie, optx);
 
 			//retorno = pad(retorno, cookie);
 			//retorno = pad(retorno.cpf, 11)+','+retorno.nome+','+retorno.data+','+pad(retorno.cep,8)
 			//retorno = pad(retorno.cpf, 11)+','+retorno.nome+','+retorno.nasc+','+pad(retorno.cep,8)
-			//console.log(retorno);
+			
 			fs.appendFile('resultado.txt', retorno+" \n\n | Checker By: APDU.emv $ LaFirma | \n\n", function (err) {
 					if (err) return console.log(err);
 			});
